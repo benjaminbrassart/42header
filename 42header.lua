@@ -18,7 +18,21 @@ local user = nil
 local mail = nil
 
 local function has_header()
-	return false
+	local header_lines = vim.api.nvim_buf_get_lines(0, 0, 11, false)
+
+	if #header_lines < 11 then
+		-- buffer does not have enough lines
+		return false
+	end
+
+	for _, line in ipairs(header_lines) do
+		-- TODO improve header detection
+		if #line ~= 80 then
+			return false
+		end
+	end
+
+	return true
 end
 
 local function update_header()
