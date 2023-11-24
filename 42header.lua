@@ -1,5 +1,6 @@
 --[[
 local ascii = {
+	"                         ",
 	"        :::      ::::::::",
 	"      :+:      :+:    :+:",
 	"    +:+ +:+         +:+  ",
@@ -7,15 +8,28 @@ local ascii = {
 	"+#+#+#+#+#+   +#+        ",
 	"     #+#    #+#          ",
 	"    ###   ########.fr    ",
+	"                         ",
 }
+--]]
 
 local function get_date()
 	return os.date("%Y/%m/%d %H:%M:%S")
 end
---]]
 
 local user = nil
 local mail = nil
+
+local function get_comment(cs)
+	local start_index, stop_index = cs:find("%%s")
+	local start = cs:sub(1, start_index - 1)
+	local stop = cs:sub(stop_index + 1)
+
+	if stop == "" then
+		 stop = start:reverse()
+	end
+
+	return { start, stop }
+end
 
 local function has_header()
 	local header_lines = vim.api.nvim_buf_get_lines(0, 0, 11, false)
@@ -35,12 +49,37 @@ local function has_header()
 	return true
 end
 
-local function update_header()
-	print 'Update header'
+--[[ Header update line:
+#    Updated: 2023/05/25 08:12:24 by bbrassar         ###   ########.fr        #
+/*   Updated: 2023/05/25 07:57:41 by bbrassar         ###   ########.fr       */
+--]]
+local function update_header(created)
+	local comment = get_comment(vim.bo.commentstring)
+	local start = comment[1]
+	local stop = comment[2]
+
+	local margin_left = (" "):rep(5 - #start)
+	local margin_right = (" "):rep(5 - #stop)
+	local date = get_date()
+	local line_left = start .. margin_left .. "Updated: " .. date .. " by " .. user
+	local line_right = margin_right .. stop;
+
+	vim.api.nvim_buf_set_lines(0, 8, 8, true, {line})
+	vim.notify("update_header()", "info")
 end
 
 local function create_header()
-	print('Create header')
+	local comment = get_comment(vim.bo.commentstring)
+	local start = comment[1]
+	local stop = comment[2]
+
+	local fill_len = 80 - #stop - #start
+	local fill = ("*"):rep(fill_len)
+	local first_line = start .. fill .. stop
+
+	vim.api.nvim_buf_set_lines(0, 0, 0, true, {first_line})
+
+	update_header(true)
 end
 
 local function stdheader()
@@ -81,7 +120,11 @@ local function setup(opts)
 
 		vim.api.nvim_create_autocmd("BufWritePre", {
 			group = group,
-			callback = stdheader,
+			callback = function()
+				if has_header() then
+					update_header(false)
+				end
+			end,
 		})
 	end
 end
