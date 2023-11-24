@@ -1,5 +1,4 @@
---[[
-local ascii = {
+local LOGO = {
 	"                         ",
 	"        :::      ::::::::",
 	"      :+:      :+:    :+:",
@@ -10,22 +9,45 @@ local ascii = {
 	"    ###   ########.fr    ",
 	"                         ",
 }
---]]
+
+local ascii = require("ascii")
+
+local user = nil
+local mail = nil
 
 local function get_date()
 	return os.date("%Y/%m/%d %H:%M:%S")
 end
 
-local user = nil
-local mail = nil
+local function get_buffer_name()
+	local name = vim.fn.expand("%:t")
+
+	if name == nil or name == "" then
+		name = "<unnamed>"
+	end
+
+	return name
+end
 
 local function get_comment(cs)
+	if cs == "" then
+		return nil
+	end
+
 	local start_index, stop_index = cs:find("%%s")
 	local start = cs:sub(1, start_index - 1)
 	local stop = cs:sub(stop_index + 1)
 
+	if start[#start] ~= " " then
+		start = start .. " "
+	end
+
 	if stop == "" then
 		 stop = start:reverse()
+	end
+
+	if stop[1] ~= " " then
+		stop = " " .. stop
 	end
 
 	return { start, stop }
@@ -49,27 +71,37 @@ local function has_header()
 	return true
 end
 
---[[ Header update line:
-#    Updated: 2023/05/25 08:12:24 by bbrassar         ###   ########.fr        #
-/*   Updated: 2023/05/25 07:57:41 by bbrassar         ###   ########.fr       */
---]]
-local function update_header(created)
-	local comment = get_comment(vim.bo.commentstring)
+local function update_header(comment, date)
+	if comment == nil then
+		comment = get_comment(vim.bo.commentstring)
+
+		if comment == nil then
+			vim.notify("Cannot update header for '" .. vim.bo.filetype .. "'", "error")
+			return
+		end
+	end
+
+	if date == nil then
+		date = get_date()
+	end
+
 	local start = comment[1]
 	local stop = comment[2]
+	local name_line = ascii.format_line(start, stop, get_buffer_name(), LOGO[3])
+	local update_line = ascii.format_line(start, stop, "Updated: " .. date .. " by " .. user, LOGO[8])
 
-	local margin_left = (" "):rep(5 - #start)
-	local margin_right = (" "):rep(5 - #stop)
-	local date = get_date()
-	local line_left = start .. margin_left .. "Updated: " .. date .. " by " .. user
-	local line_right = margin_right .. stop;
-
-	vim.api.nvim_buf_set_lines(0, 8, 8, true, {line})
-	vim.notify("update_header()", "info")
+	vim.api.nvim_buf_set_lines(0, 3, 4, true, {name_line});
+	vim.api.nvim_buf_set_lines(0, 8, 9, true, {update_line})
 end
 
 local function create_header()
 	local comment = get_comment(vim.bo.commentstring)
+
+	if comment == nil then
+		vim.notify("Cannot create header for '" .. vim.bo.filetype .. "'", "error")
+		return
+	end
+
 	local start = comment[1]
 	local stop = comment[2]
 
@@ -77,9 +109,31 @@ local function create_header()
 	local fill = ("*"):rep(fill_len)
 	local first_line = start .. fill .. stop
 
-	vim.api.nvim_buf_set_lines(0, 0, 0, true, {first_line})
+	local date = get_date()
+	local lines = {}
 
-	update_header(true)
+	lines[#lines + 1] = first_line
+
+	for i, logo_line in ipairs(LOGO) do
+		local left
+
+		if i == 5 then
+			left = "By: " .. user .. " <" .. mail .. ">"
+		elseif i == 7 then
+			left = "Created: " .. date .. " by " .. user
+		else
+			left = ""
+		end
+
+		lines[#lines + 1] = ascii.format_line(start, stop, left, logo_line)
+	end
+
+	lines[#lines + 1] = first_line
+	lines[#lines + 1] = ""
+
+	vim.api.nvim_buf_set_lines(0, 0, 0, false, lines)
+
+	update_header(comment, date)
 end
 
 local function stdheader()
@@ -122,12 +176,16 @@ local function setup(opts)
 			group = group,
 			callback = function()
 				if has_header() then
-					update_header(false)
+					update_header(nil, nil)
 				end
 			end,
 		})
 	end
 end
+
+-- TODO use lazy.nvim config
+--
+-- https://github.com/folke/lazy.nvim#-plugin-spec
 
 return {
 	setup = setup,
