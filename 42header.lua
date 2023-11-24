@@ -52,12 +52,7 @@ local function stdheader()
 end
 
 local function setup(opts)
-	local group = vim.api.nvim_create_augroup("42header", { clear = true })
-
-	vim.api.nvim_create_autocmd("BufWritePre", {
-		group = group,
-		callback = stdheader,
-	})
+	local update_on_write = true
 
 	vim.api.nvim_create_user_command("Stdheader", stdheader, {})
 
@@ -67,6 +62,8 @@ local function setup(opts)
 				user = v
 			elseif k == "mail" then
 				mail = v
+			elseif k == "update_on_write" then
+				update_on_write = v
 			end
 		end
 	end
@@ -77,6 +74,15 @@ local function setup(opts)
 
 	if mail == nil or mail == "" then
 		mail = user .. "@student.42.fr"
+	end
+
+	if update_on_write then
+		local group = vim.api.nvim_create_augroup("42header", { clear = true })
+
+		vim.api.nvim_create_autocmd("BufWritePre", {
+			group = group,
+			callback = stdheader,
+		})
 	end
 end
 
