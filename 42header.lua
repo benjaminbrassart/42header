@@ -34,7 +34,7 @@ local function stdheader()
 	end
 end
 
-local function register_auto_cmds()
+local function setup(opts)
 	local group = vim.api.nvim_create_augroup("42header", { clear = true })
 
 	vim.api.nvim_create_autocmd("BufWritePre", {
@@ -43,11 +43,10 @@ local function register_auto_cmds()
 			stdheader()
 		end,
 	})
+
+	vim.api.nvim_create_user_command("Stdheader", stdheader, {})
 end
 
-register_auto_cmds()
-vim.api.nvim_create_user_command("Stdheader", stdheader, {})
-
 return {
-	stdheader = stdheader,
+	setup = setup,
 }
