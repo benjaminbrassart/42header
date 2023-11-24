@@ -14,6 +14,9 @@ local function get_date()
 end
 --]]
 
+local user = nil
+local mail = nil
+
 local function has_header()
 	return false
 end
@@ -23,7 +26,7 @@ local function update_header()
 end
 
 local function create_header()
-	print 'Create header'
+	print('Create header')
 end
 
 local function stdheader()
@@ -39,12 +42,28 @@ local function setup(opts)
 
 	vim.api.nvim_create_autocmd("BufWritePre", {
 		group = group,
-		callback = function()
-			stdheader()
-		end,
+		callback = stdheader,
 	})
 
 	vim.api.nvim_create_user_command("Stdheader", stdheader, {})
+
+	if opts ~= nil then
+		for k, v in pairs(opts) do
+			if k == "user" then
+				user = v
+			elseif k == "mail" then
+				mail = v
+			end
+		end
+	end
+
+	if user == nil or user == "" then
+		user = "marvin"
+	end
+
+	if mail == nil or mail == "" then
+		mail = user .. "@student.42.fr"
+	end
 end
 
 return {
