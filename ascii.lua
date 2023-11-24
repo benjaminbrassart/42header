@@ -2,7 +2,7 @@ local function format_line(start, stop, left, right)
 	local margin_left = (" "):rep(5 - #start)
 	local margin_right = (" "):rep(5 - #stop)
 
-	-- TODO truncate left
+	left = left:sub(1, 80 - #start - #margin_left - #right - #margin_right - #stop - 2)
 
 	local line_left = start .. margin_left .. left
 	local line_right = right .. margin_right .. stop
