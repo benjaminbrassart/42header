@@ -38,7 +38,7 @@ local function get_comment(cs)
 	local start = cs:sub(1, start_index - 1)
 	local stop = cs:sub(stop_index + 1)
 
-	if start[#start] ~= " " then
+	if start:sub(#start, #start) ~= " " then
 		start = start .. " "
 	end
 
@@ -46,7 +46,7 @@ local function get_comment(cs)
 		 stop = start:reverse()
 	end
 
-	if stop[1] ~= " " then
+	if stop:sub(1, 1) ~= " " then
 		stop = " " .. stop
 	end
 
