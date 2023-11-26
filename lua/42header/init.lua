@@ -10,7 +10,7 @@ local LOGO = {
 	"                         ",
 }
 
-local ascii = require("ascii")
+local ascii = require("42header.ascii")
 
 local user = nil
 local mail = nil
