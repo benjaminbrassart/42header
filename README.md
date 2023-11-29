@@ -22,7 +22,8 @@ Here are the available options:
 
 ## Usage
 
-The command to insert or update the header in `:Stdheader`. You can map it to a key for conve
+The command to insert or update the header in `:Stdheader`.
+You can map it to a key for convenience:
 
 ```lua
 -- in your init.lua
