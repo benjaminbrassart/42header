@@ -183,10 +183,6 @@ local function setup(opts)
 	end
 end
 
--- TODO use lazy.nvim config
---
--- https://github.com/folke/lazy.nvim#-plugin-spec
-
 return {
 	setup = setup,
 }
